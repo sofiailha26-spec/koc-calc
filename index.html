@@ -697,6 +697,7 @@ function renderRegionCard() {
     ${data.notCooperateMsg ? `<div class="info-box red">⛔ ${data.notCooperateMsg}</div>` : ''}
   `;
 
+  // 生成快捷播放量按钮
   generateQuickViewsButtons(data);
 }
 
@@ -706,6 +707,7 @@ function generateQuickViewsButtons(regionData) {
 
   const quickValues = [];
 
+  // 找出 tier 中最大的播放量上限
   let maxTierView = 0;
   regionData.tiers.forEach(tier => {
     if (tier[1] < 99999999) {
@@ -713,14 +715,17 @@ function generateQuickViewsButtons(regionData) {
     }
   });
 
+  // 1k-9k：每隔 1k
   for (let i = 1000; i <= 9000; i += 1000) {
     quickValues.push(i);
   }
 
+  // 10k-99k：每隔 10k
   for (let i = 10000; i <= 99000; i += 10000) {
     quickValues.push(i);
   }
 
+  // 100k 以上：每隔 100k
   for (let i = 100000; i <= maxTierView; i += 100000) {
     quickValues.push(i);
   }
@@ -949,11 +954,13 @@ function showResult(isError, title, msg, html, useHtml, color) {
 document.getElementById('views').addEventListener('keypress', e => { if (e.key === 'Enter') calculate(); });
 document.getElementById('targetPrice').addEventListener('keypress', e => { if (e.key === 'Enter') reverseCalc(); });
 
+/* ---- 快捷按钮 ---- */
 function setViewsQuick(val) {
   document.getElementById('views').value = val;
   document.getElementById('result').classList.remove('show');
 }
 
+/* ---- 清空函数 ---- */
 function clearField(id) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -962,8 +969,10 @@ function clearField(id) {
   } else {
     el.value = '';
   }
+  // 触发 change 事件以更新依赖的 UI
   if (id === 'region') renderRegionCard();
   if (id === 'contentType') renderTypeHint();
+  // 隐藏结果
   document.getElementById('result').classList.remove('show');
 }
 
@@ -983,6 +992,7 @@ function clearAllReverse() {
   document.getElementById('result').classList.remove('show');
 }
 
+/* ---- 互动率计算 ---- */
 function parseK(val) {
   if (!val || val.trim() === '') return NaN;
   const s = val.trim().toLowerCase();
@@ -1078,6 +1088,7 @@ function clearEngagement() {
   document.getElementById('engResult').classList.remove('show');
 }
 
+/* ---- 互动率 Enter 键支持 ---- */
 document.getElementById('engViews').addEventListener('keypress', e => { if (e.key === 'Enter') calcEngagement(); });
 document.getElementById('engLikes').addEventListener('keypress', e => { if (e.key === 'Enter') calcEngagement(); });
 document.getElementById('engComments').addEventListener('keypress', e => { if (e.key === 'Enter') calcEngagement(); });
