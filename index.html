@@ -1401,6 +1401,7 @@ function calcKOL() {
   const method1 = minViews * 10;
   const method2 = stableViews * 5;
   const maxOffer = Math.max(method1, method2);
+  const higherMethod = method1 >= method2 ? '①' : '②';
 
   let negotiateAdvice = '';
   if (maxOffer > 5000) {
@@ -1412,13 +1413,24 @@ function calcKOL() {
   }
 
   const html = `
-    <h3>👑 KOL Max Offer 计算结果</h3>
-    <div class="price-display">$${maxOffer.toLocaleString()} <span class="unit">/ 条</span></div>
-    <div class="price-suggest">取高者：① $${method1.toLocaleString()} (最低×10) vs ② $${method2.toLocaleString()} (稳定×5)</div>
+    <h3>👑 KOL Max Offer 计算结果（取高者）</h3>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:12px 0;">
+      <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe); border:1.5px solid #93c5fd; border-radius:12px; padding:16px; text-align:center;">
+        <div style="font-size:12px; color:#1e40af; font-weight:600; margin-bottom:4px;">① 最低播放量 × 10</div>
+        <div style="font-size:28px; font-weight:700; color:#1d4ed8;">$${method1.toLocaleString()}</div>
+        <div style="font-size:11px; color:#64748b; margin-top:4px;">${formatNum(minViews)} × 10</div>
+      </div>
+      <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7); border:1.5px solid #86efac; border-radius:12px; padding:16px; text-align:center;">
+        <div style="font-size:12px; color:#166534; font-weight:600; margin-bottom:4px;">② 稳定播放量 × 5</div>
+        <div style="font-size:28px; font-weight:700; color:#047857;">$${method2.toLocaleString()}</div>
+        <div style="font-size:11px; color:#64748b; margin-top:4px;">${formatNum(stableViews)} × 5</div>
+      </div>
+    </div>
+    <div style="background:linear-gradient(135deg,#fefce8,#fef9c3); border:1.5px solid #fde047; border-radius:12px; padding:16px; text-align:center;">
+      <div style="font-size:13px; color:#713f12; font-weight:600; margin-bottom:4px;">🎯 最终 Max Offer（取高者 ${higherMethod}）</div>
+      <div style="font-size:36px; font-weight:700; color:#a16207;">$${maxOffer.toLocaleString()}</div>
+    </div>
     <div class="meta">
-      <strong>📊 方式①：</strong>最低播放量 ${formatNum(minViews)} × 10 = <strong>$${method1.toLocaleString()}</strong><br>
-      <strong>📊 方式②：</strong>稳定播放量 ${formatNum(stableViews)} × 5 = <strong>$${method2.toLocaleString()}</strong><br>
-      <strong>🎯 最终 Max：</strong>$${maxOffer.toLocaleString()}<br>
       <strong>🤝 首轮谈价：</strong>$${Math.round(maxOffer * 0.5).toLocaleString()} ~ $${Math.round(maxOffer * 0.8).toLocaleString()} (Max 的 50-80%)
     </div>
     ${negotiateAdvice}
