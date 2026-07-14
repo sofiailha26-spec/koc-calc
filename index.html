@@ -405,7 +405,7 @@
     </p>
 
     <div class="form-row">
-      <label class="title">近期最低播放量 *</label>
+      <label class="title">近期最低播放量（填任一即可）</label>
       <div class="input-with-clear">
         <input type="text" id="kolMinViews" placeholder="例如: 120k 或 120000" />
         <button class="clear-btn" onclick="clearField('kolMinViews')" title="清空">⟳</button>
@@ -414,7 +414,7 @@
     </div>
 
     <div class="form-row">
-      <label class="title">90%视频稳定播放量 *</label>
+      <label class="title">90%视频稳定播放量（填任一即可）</label>
       <div class="input-with-clear">
         <input type="text" id="kolStableViews" placeholder="例如: 300k 或 300000" />
         <button class="clear-btn" onclick="clearField('kolStableViews')" title="清空">⟳</button>
@@ -1385,23 +1385,19 @@ function calcKOL() {
   const minViews = parseK(minRaw);
   const stableViews = parseK(stableRaw);
 
-  if (isNaN(minViews) || minViews <= 0) {
-    showKOLResult(true, '⚠️ 请输入有效的最低播放量');
-    return;
-  }
-  if (isNaN(stableViews) || stableViews <= 0) {
-    showKOLResult(true, '⚠️ 请输入有效的稳定播放量');
-    return;
-  }
-  if (stableViews < minViews) {
-    showKOLResult(true, '⚠️ 稳定播放量应大于或等于最低播放量');
+  const hasMin = !isNaN(minViews) && minViews > 0;
+  const hasStable = !isNaN(stableViews) && stableViews > 0;
+
+  if (!hasMin && !hasStable) {
+    showKOLResult(true, '⚠️ 请至少输入一个播放量（最低或稳定均可）');
     return;
   }
 
-  const method1 = minViews * 10;
-  const method2 = stableViews * 5;
-  const maxOffer = Math.max(method1, method2);
-  const higherMethod = method1 >= method2 ? '①' : '②';
+  const method1 = hasMin ? minViews * 10 : null;
+  const method2 = hasStable ? stableViews * 5 : null;
+  const both = hasMin && hasStable;
+  const maxOffer = Math.max(method1 || 0, method2 || 0);
+  const higherMethod = both ? (method1 >= method2 ? '①' : '②') : (hasMin ? '①' : '②');
 
   let negotiateAdvice = '';
   if (maxOffer > 5000) {
@@ -1412,8 +1408,10 @@ function calcKOL() {
     negotiateAdvice = `<div class="eng-result" style="margin-top:8px;"><div class="big good">✅ 价格适中，按常规流程谈判</div><div>首轮用 Max 的 50-80% 开始谈价，合作价越低越好</div></div>`;
   }
 
-  const html = `
-    <h3>👑 KOL Max Offer 计算结果（取高者）</h3>
+  // 构建双卡片或单卡片
+  let cardsHtml = '';
+  if (both) {
+    cardsHtml = `
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:12px 0;">
       <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe); border:1.5px solid #93c5fd; border-radius:12px; padding:16px; text-align:center;">
         <div style="font-size:12px; color:#1e40af; font-weight:600; margin-bottom:4px;">① 最低播放量 × 10</div>
@@ -1425,9 +1423,37 @@ function calcKOL() {
         <div style="font-size:28px; font-weight:700; color:#047857;">$${method2.toLocaleString()}</div>
         <div style="font-size:11px; color:#64748b; margin-top:4px;">${formatNum(stableViews)} × 5</div>
       </div>
-    </div>
+    </div>`;
+  } else if (hasMin) {
+    cardsHtml = `
+    <div style="margin:12px 0;">
+      <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe); border:1.5px solid #93c5fd; border-radius:12px; padding:20px; text-align:center;">
+        <div style="font-size:13px; color:#1e40af; font-weight:600; margin-bottom:6px;">① 最低播放量 × 10</div>
+        <div style="font-size:36px; font-weight:700; color:#1d4ed8;">$${method1.toLocaleString()}</div>
+        <div style="font-size:12px; color:#64748b; margin-top:6px;">${formatNum(minViews)} × 10</div>
+      </div>
+      <div style="font-size:12px; color:#94a3b8; text-align:center; margin-top:8px;">💡 也可填入「90%视频稳定播放量」，系统会取两者中更高报价</div>
+    </div>`;
+  } else {
+    cardsHtml = `
+    <div style="margin:12px 0;">
+      <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7); border:1.5px solid #86efac; border-radius:12px; padding:20px; text-align:center;">
+        <div style="font-size:13px; color:#166534; font-weight:600; margin-bottom:6px;">② 稳定播放量 × 5</div>
+        <div style="font-size:36px; font-weight:700; color:#047857;">$${method2.toLocaleString()}</div>
+        <div style="font-size:12px; color:#64748b; margin-top:6px;">${formatNum(stableViews)} × 5</div>
+      </div>
+      <div style="font-size:12px; color:#94a3b8; text-align:center; margin-top:8px;">💡 也可填入「所有视频最低播放量」，系统会取两者中更高报价</div>
+    </div>`;
+  }
+
+  const titleText = both ? '👑 KOL Max Offer 计算结果（取高者）' : '👑 KOL Max Offer 计算结果';
+  const finalLabel = both ? `取高者 ${higherMethod}` : (hasMin ? '方式①' : '方式②');
+
+  const html = `
+    <h3>${titleText}</h3>
+    ${cardsHtml}
     <div style="background:linear-gradient(135deg,#fefce8,#fef9c3); border:1.5px solid #fde047; border-radius:12px; padding:16px; text-align:center;">
-      <div style="font-size:13px; color:#713f12; font-weight:600; margin-bottom:4px;">🎯 最终 Max Offer（取高者 ${higherMethod}）</div>
+      <div style="font-size:13px; color:#713f12; font-weight:600; margin-bottom:4px;">🎯 最终 Max Offer（${finalLabel}）</div>
       <div style="font-size:36px; font-weight:700; color:#a16207;">$${maxOffer.toLocaleString()}</div>
     </div>
     <div class="meta">
